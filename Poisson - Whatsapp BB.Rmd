@@ -1,0 +1,118 @@
+---
+title: "Atendimento Whatsapp BB - Poisson"
+author: "Bruno Gomes Resende"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{bbm}
+   - \usepackage{cases}
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Distribuição de Poisson
+
+Lendo Bibliotecas usadas
+
+```{r}
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+```
+
+Quando uma variável aleatória apresenta Distribuição de Poisson, dizemos que $X \sim Poisson (\lambda)$, onde $\lambda > 0$ é o parâmetro que representa a **Taxa de Ocorrência** do evento de interesse e $X = \{0, 1, 2, \dots \}$. Para essa variável aleatória temos:
+
+## Previsibilidade de volume de atendimentos Canal Whatsapp BB
+
+Para que se possa realizar um planejamento de capacidade de infraestrutura tecnológica instalada para provimento do serviço de autoatendimento via Whatsapp BB, foi solicitado ao analista de dados um estudo das probabilidades de alguns cenários simulados de demanda.
+
+Tem-se que a média diária no canal é de $116.300$ atendimentos, de acordo com dados de abril de 2020, disponíveis em <https://www.bb.com.br/pbb/pagina-inicial/imprensa/n/61243/bb-registra-aumento-expressivo-em-transacoes-e-atendimento-digitais#/>.
+
+Esta média diária equivale a uma quantidade de $81$ atendimentos por minuto no canal em média.
+
+```{=tex}
+\begin{align*}
+\frac {116.300 \ atendimentos}{dia} = \frac {116.300 \ atendimentos}{1.440 \ minutos} = \frac {81  \ atendimentos}{minuto} \\
+\end{align*}
+```
+A gerência gostaria de ter acesso a uma simulação de uma distribuição e que seja apresentada a eles a probabilidade e informações adicionais para que ocorra um pico de $100$ acessos por minuto ao canal, no próximo dia útil.
+
+```{=tex}
+\begin{align*}
+\begin{cases}
+   \mathbb{P}_{X} (X = x) = \frac{e^{-\lambda} \lambda^{x} }{ x! } \quad com = \{0,1,2, \dots \} \\
+    \mathbb{E}(X) = \lambda \\
+   \mathbb{V}(X) = \lambda  
+\end{cases}
+\end{align*}
+```
+```{r}
+pois_dist = dpois(100, 81)
+pois_dist = round(pois_dist, digits = 5) * 100
+pois_dist
+```
+
+A probabilidade Teórica de ocorrer um pico de $100$ atendimentos por minuto no canal Whatsapp BB no próximo dia útil, considerando a média de $\lambda = 81$ atendimentos por minuto é em torno de $0.5\%$.
+
+Isto posto, será realizada uma visualização dos dados simulados para o evento (evento = pico de atendimentos por minuto), com os seguintes parâmetros: em um dia ($n = 1440$ minutos), em uma semana ($n = 10080$ minutos) e em um ano ($n = 525600$ minutos) de operação de serviço.
+
+### Simulação de PICO de volume de atendimentos em um DIA
+
+```{r}
+set.seed(2)
+
+atdDia <- data.frame('data' = rpois(1440, 81))
+
+atdDia %>% ggplot() +
+  geom_histogram(aes(x = data,
+                     y = stat(count / sum(count)),
+                     fill = data == 100),
+                 binwidth = 1,
+                 color = 'black',) +
+  scale_x_continuous() + 
+  labs(x = 'Número atendimentos por minuto',
+       y = 'Proporção',
+       title = 'Simulação de pico por minuto em um dia Pois(lambda=81)') +
+  theme_bw()
+```
+
+### Simulação de PICO de volume de atendimentos em uma SEMANA
+
+```{r}
+set.seed(2)
+
+atdDia <- data.frame('data' = rpois(10080, 81))
+
+atdDia %>% ggplot() +
+  geom_histogram(aes(x = data,
+                     y = stat(count / sum(count)),
+                     fill = data == 100),
+                 binwidth = 1,
+                 color = 'black',) +
+  scale_x_continuous() + 
+  labs(x = 'Número atendimentos por minuto',
+       y = 'Proporção',
+       title = 'Simulação de pico por minuto em uma semana Pois(lambda  = 81)') +
+  theme_bw()
+```
+
+### Simulação de PICO de volume de atendimentos em um ANO
+
+```{r}
+set.seed(2)
+
+atdDia <- data.frame('data' = rpois(525600, 81))
+
+atdDia %>% ggplot() +
+  geom_histogram(aes(x = data,
+                     y = stat(count / sum(count)),
+                     fill = data == 100),
+                 binwidth = 1,
+                 color = 'black',) +
+  scale_x_continuous() + 
+  labs(x = 'Número atendimentos por minuto',
+       y = 'Proporção',
+       title = 'Simulação de pico por minuto em um ano Pois(lambda  = 81)') +
+  theme_bw()
+```
